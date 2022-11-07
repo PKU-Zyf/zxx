@@ -1,6 +1,6 @@
 # zxx
 
-* 北京大学政信信女足开发的Python库，主要用于剪辑比赛集锦。 / A Python package developed by “Zheng Xin Xin”Women’s Football Team at Peking University, mainly used for editing game highlights.
+* 北京大学政信信女足开发的Python库，主要用于剪辑比赛集锦。 / A Python package developed by “Zheng Xin Xin” Women’s Football Team at Peking University, mainly used for editing game highlights.
 
 * 点击[此处](https://github.com/PKU-Zyf/zxx)前往zxx的GitHub主页。 / Click [here](https://github.com/PKU-Zyf/zxx) to go to the GitHub homepage of  *zxx*.
 
@@ -13,5 +13,4 @@
   ## 更新日志 Update Logs
 
 * 0.1.0 (2022-11-07)
-
   * 第一次正式发布。 / The first release.
