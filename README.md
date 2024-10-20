@@ -14,3 +14,5 @@
 
 * 0.1.0 (2022-11-07)
   * 第一次正式发布。 / The first release.
+* 0.2.0 (2023-04-03)
+  * 全面修改运行逻辑。 / An entire modification.
