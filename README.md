@@ -14,6 +14,7 @@
 
 * 0.1.0 (2022-11-07)
   * 第一次正式发布。 / The first release.
+<<<<<<< HEAD
 
 * 0.2.0 (2023-04-03)
 
@@ -22,3 +23,7 @@
 * 1.0.0 (2024-10-24)
 
   * 修复了一些 bug，简化了使用逻辑，添加了详细的文档字符串（使用说明）和示例代码。 / Fixed some bugs, simplified the usage, and added detailed docstrings and example code.
+=======
+* 0.2.0 (2023-04-03)
+  * 全面修改运行逻辑。 / An entire modification.
+>>>>>>> 8ed5440503f233199986f0cfee34e8d45d816499
