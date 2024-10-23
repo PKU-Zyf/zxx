@@ -1,0 +1,13 @@
+LICENSE
+README.md
+pyproject.toml
+setup.cfg
+src/zxx/File.py
+src/zxx/Highlight.py
+src/zxx/__init__.py
+src/zxx/options.py
+src/zxx/tools.py
+src/zxx.egg-info/PKG-INFO
+src/zxx.egg-info/SOURCES.txt
+src/zxx.egg-info/dependency_links.txt
+src/zxx.egg-info/top_level.txt

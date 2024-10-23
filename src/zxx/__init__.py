@@ -1,12 +1,15 @@
 """
-zxx
-最后更新：2023-04-03
+Python package zxx 1.0.0
+Latest update: 2024-10-23
 
-尚未解决的问题：
-    使用audio_normalize标准化音量
+各模块调用顺序：
+    Highlight <- File <- tools <- options
+
+后续有待解决的事项：
+    1. 可以增加一个标准化音量的功能。
+    2. SetCaptionStyle() 和 SetScoreBoardStyle() 指定字体属性的方式不一样，一个是基于 ImageMagick，一个是基于 Pillow，使用起来不统一。
 """
 
+
 from .File import File
-from .Video import Video
 from .Highlight import Highlight
-from .options import SetVideoPath, SetMatchInfo, SetCaptionStyle, SetScoreBoardStyle
