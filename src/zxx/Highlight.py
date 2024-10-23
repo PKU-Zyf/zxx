@@ -105,7 +105,9 @@ class Highlight():
         参数说明：
             filename：背景音乐的文件名。
             folder：背景音乐文件所在的文件夹绝对路径。如果未指定，则默认为工作目录（即 zxx.options.GetPath() 的返回值）。
-            select：选择截取音乐的时间范围。写成 ["02:12", "03:06"] 这样的形式。注意开始时刻必须早于结束时刻。 
+            select：选择截取音乐的时间范围。
+                写成 ["02:12", "03:06"] 这样的形式。注意开始时刻必须早于结束时刻。
+                开始 / 结束时刻如果是空字符串，默认是音乐的开始 / 结束处。
             repeat：设置把截取的音乐片段重复几次（默认为 1，即不重复）
             mode：设置配乐的模式。具体有如下选择：
                 mode = "cut"：原速播放音乐，视频结束就停止音乐。
@@ -116,8 +118,14 @@ class Highlight():
         video_clip = self.__contents
         audio_clip = AudioFileClip(path.join(folder, filename))
         if select != []:
-            b = str2sec(select[0])
-            e = str2sec(select[1])
+            if select[0] == "":
+                b = 0
+            else:
+                b = str2sec(select[0])
+            if select[1] == "":
+                e = audio_clip.duration
+            else:
+                e = str2sec(select[1])
             if b >= e:
                 raise Exception("背景音乐剪辑错误：开始时间（%s）不早于结束时间（%s）" % (b, e))
             else:
