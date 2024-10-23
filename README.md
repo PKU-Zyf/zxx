@@ -5,7 +5,7 @@
 * 点击[此处](https://pypi.org/project/zxx)前往 `zxx` 的 PyPI 主页。 / Click [here](https://pypi.org/project/zxx) to go to the PyPI homepage of `zxx`.
 * 安装 / To install: `pip install zxx`.
 * 更新 / To update: `pip install --upgrade zxx` / `pip install -U zxx`.
-* **注意：**由于 `zxx` 库依赖 `moviepy` 库进行视频编辑，而 `moviepy` 的运行需要首先自行安装 ImageMagick。因此**在使用 `zxx` 库前，也需要先在电脑上手动安装 ImageMagick**，才能正常使用。安装方式请参考[此处](https://www.imagemagick.org/script/download.php)。 / Caution: Since `zxx` relies on `moviepy` for video editing, and you need to install ImageMagick first to run `moviepy` properly, **you also need to install ImageMagick manually on your computer before you can use `zxx`**. Click [here](https://www.imagemagick.org/script/download.php) for the installation tips.
+* 注意：由于 `zxx` 库依赖 `moviepy` 库进行视频编辑，而 `moviepy` 的运行需要首先自行安装 ImageMagick。因此**在使用 `zxx` 库前，也需要先在电脑上手动安装 ImageMagick**，才能正常使用。安装方式请参考[此处](https://www.imagemagick.org/script/download.php)。 / Caution: Since `zxx` relies on `moviepy` for video editing, and you need to install ImageMagick first to run `moviepy` properly, **you also need to install ImageMagick manually on your computer before you can use `zxx`**. Click [here](https://www.imagemagick.org/script/download.php) for the installation tips.
 
 ## 更新日志 Update Logs
 
