@@ -9,7 +9,7 @@ from __future__ import annotations
 from moviepy.editor import *
 from os import path
 
-from .options import GetPath
+from .options import GetPath, SetMatchInfo
 from .tools import str2sec, sec2str, add_effects, add_caption, add_scoreboard
 from .File import File
 
@@ -66,7 +66,7 @@ class Highlight():
 
     def __add_video(self, clip: VideoClip) -> Highlight:
         """
-        【不建议外部调用本方法，实际剪辑集锦时，建议使用 zxx.Highlight.use() 代替】
+        【不建议外部调用本方法，实际剪辑集锦时，应使用 zxx.Highlight.use() 代替】
 
         向集锦中追加一段视频片段。如果新追加视频画面尺寸不同，会自动将新视频统一成和已有集锦相同的尺寸。
         返回值是 self，即调用该函数的实例本身，因此可用于链式写法。
@@ -259,7 +259,7 @@ class Highlight():
             self.__add_video(clip)
         return self
 
-    def export(self, filename: str, folder: str = None, mode: str = "hd") -> Highlight:
+    def export(self, filename: str, folder: str = None, mode: str = "hd", threads: int | None = None) -> Highlight:
         """
         将整个集锦导出成视频文件。
         返回值是 self，即调用该函数的实例本身，因此可用于链式写法。
@@ -271,7 +271,8 @@ class Highlight():
                 mode = "preview"：用于导出快速预览，视频文件会很小，建议导出文件名选择 .mp4 后缀。
                 mode = "hd"：高清画质，视频压缩效果好，建议导出文件名选择 .mp4 后缀。
                 mode = "DJI Action 4"：匹配大疆 Action 4 画质，建议导出文件名选择 .mp4 后缀。
-                mode = "lossless"，无损画质，文件非常大，不推荐使用。建议导出文件名选择 .avi 后缀。
+                mode = "lossless"，无损画质，文件非常大，不推荐使用。建议导出文件名选择 .avi 
+            threads：导出时的线程数，默认为 None 即不使用多线程。
         """
         if folder == None:
             folder = GetPath()
@@ -283,6 +284,7 @@ class Highlight():
                 fps = 24,
                 preset = "ultrafast",
                 bitrate = "1000k",
+                threads = threads,
             )
         # 高清画质
         ## 视频质量通过 bitrate 参数调节，B站推荐4k视频码率大于20000kbps
@@ -291,6 +293,7 @@ class Highlight():
                 output_path,
                 codec = "libx264",
                 bitrate = "20000k",
+                threads = threads,
             )
         # 匹配大疆 Action 4 画质
         elif mode == "DJI Action 4":
@@ -299,6 +302,7 @@ class Highlight():
                 fps = 60,
                 codec="libx264",
                 bitrate="100000k",
+                threads = threads,
             )
         # 无损画质
         elif mode == "lossless":
@@ -306,6 +310,19 @@ class Highlight():
                 output_path,
                 codec = "png",
                 bitrate = "20000k",
+                threads = threads,
             )
         print("视频已导出至 %s" % output_path)
+        return self
+    
+    def change_match_info(self, home: str = "", away: str = "") -> Highlight:
+        """
+        中途修改比赛信息（主客队信息），用于制作多场比赛的集锦。
+        """
+        if home != "" and away != "":
+            SetMatchInfo(home=home, away=away)
+        elif home != "":
+            SetMatchInfo(home=home)
+        elif away != "":
+            SetMatchInfo(away=away)
         return self

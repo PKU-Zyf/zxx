@@ -1,3 +1,17 @@
+Metadata-Version: 2.1
+Name: zxx
+Version: 1.0.1
+Summary: A Python package developed by “Zheng-Xin-She” (formerly “Zheng-Xin-Xin”) Women’s Football Team at Peking University, mainly used for editing game highlights.
+Home-page: https://pypi.org/project/zxx
+Author: Yifan Zhang
+Author-email: zyfcode@outlook.com
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: GNU General Public License v3 (GPLv3)
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+License-File: LICENSE
+
 # zxx
 
 * 北京大学政信社（政信信）女足开发的 Python 库，主要用于剪辑比赛集锦。 / A Python package developed by “Zheng-Xin-She” (formerly “Zheng-Xin-Xin”) Women’s Football Team at Peking University, mainly used for editing game highlights.
@@ -17,6 +31,3 @@
   * 修复了一些 bug，简化了使用逻辑，添加了详细的文档字符串（使用说明）。 / Fixed some bugs, simplified the usage, and added detailed docstrings.
 * 1.0.1 (2024-10-23)
   * 修改了一些文字错误，增加了示例代码。 / Fixed some typos and added example code.
-* 1.1.0 (2025-07-30)
-  * 增加了修改主客队信息的 change_match_info() 方法。 / Add `change_match_info()` method.
-  * 增加了多线程导出集锦的选项。 / Add multi-threading exporting option.
