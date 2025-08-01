@@ -5,12 +5,7 @@ zxx.Highlight
 """
 
 
-from __future__ import annotations
-from moviepy.editor import *
-from os import path
-
-from .options import GetPath, SetMatchInfo
-from .tools import str2sec, sec2str, add_effects, add_caption, add_scoreboard
+from moviepy import VideoClip
 from .File import File
 
 
@@ -27,8 +22,6 @@ class Highlight():
         self.__score = (0, 0)
         self.__show_score = False
 
-    # 以下方法和 zxx.Vedio 类是一样的
-
     def contents(self) -> VideoClip | None:
         """
         获取视频内容。
@@ -39,10 +32,12 @@ class Highlight():
         """
         获取视频时长。
         """
+        from .tools import sec2str
+        
         dur = sec2str(self.contents().duration)
         return dur
 
-    def print_duration(self) -> Highlight:
+    def print_duration(self) -> "Highlight":
         """
         打印视频时长。
         返回值是 self，即调用该函数的实例本身，因此可用于链式写法。
@@ -52,7 +47,7 @@ class Highlight():
 
     # 以下是 Highlight 类独有的方法
 
-    def source_file(self) -> File:
+    def source_file(self) -> "File":
         """
         返回集锦当前正在处理的视频片段的源文件，类型为 zxx.File。
         """
@@ -64,16 +59,19 @@ class Highlight():
         """
         return self.__score
 
-    def __add_video(self, clip: VideoClip) -> Highlight:
+    def __add_video(self, clip: VideoClip) -> "Highlight":
         """
-        【不建议外部调用本方法，实际剪辑集锦时，应使用 zxx.Highlight.use() 代替】
+        不应外部调用本方法！实际剪辑集锦时，应使用 zxx.Highlight.use() 代替。
 
         向集锦中追加一段视频片段。如果新追加视频画面尺寸不同，会自动将新视频统一成和已有集锦相同的尺寸。
         返回值是 self，即调用该函数的实例本身，因此可用于链式写法。
 
         参数说明：
-            video：要追加的视频片段，类型是 moviepy.video 的 VideoClip 类。
+            video：要追加的视频片段，类型是 moviepy 的 VideoClip 类。
         """
+        from moviepy import concatenate_videoclips
+        from moviepy.video import fx as vfx
+
         if self.contents() == None:
             self.__contents = clip
         else:
@@ -81,23 +79,26 @@ class Highlight():
             hl_size = self.__contents.size
             v_size = clip.size
             if hl_size != v_size:
-                new_clip = clip.resize(hl_size)
+                new_clip = clip.with_effects([vfx.Resize(hl_size)])
             else:
                 new_clip = clip
             self.__contents = concatenate_videoclips([self.contents(), new_clip])
         return self
 
-    def silence(self) -> Highlight:
+    def silence(self) -> "Highlight":
         """
         集锦整体消音。
         返回值是 self，即调用该函数的实例本身，因此可用于链式写法。
         """
+        from moviepy.audio import fx as afx
+
         clip = self.contents()
-        self.__contents = clip.without_audio()
+        clip = clip.with_effects([afx.MultiplyVolume(factor=0)])
+        self.__contents = clip
         return self
 
     def add_bgm(self, filename: str, folder: str = None, 
-                select: list = [], repeat: int = 1, mode = "cut") -> Highlight:
+                select: list = [], repeat: int = 1, mode = "cut") -> "Highlight":
         """
         为集锦添加背景音乐。
         返回值是 self，即调用该函数的实例本身，因此可用于链式写法。
@@ -110,13 +111,20 @@ class Highlight():
                 开始 / 结束时刻如果是空字符串，默认是音乐的开始 / 结束处。
             repeat：设置把截取的音乐片段重复几次（默认为 1，即不重复）
             mode：设置配乐的模式。具体有如下选择：
-                mode = "cut"：原速播放音乐，视频结束就停止音乐。
+                mode = "cut"：原速播放音乐，如果视频结束音乐仍未结束，则直接停止音乐。
                 mode = "change_music_speed"：自动调整音乐速度，以匹配视频时长。可能导致音乐变调。
         """
+        from moviepy import AudioFileClip
+        from moviepy import concatenate_audioclips
+        from moviepy.video import fx as vfx
+        from os.path import join
+        from .options import GetPath
+        from .tools import str2sec
+
         if folder == None:
             folder = GetPath()
         video_clip = self.__contents
-        audio_clip = AudioFileClip(path.join(folder, filename))
+        audio_clip = AudioFileClip(join(folder, filename))
         if select != []:
             if select[0] == "":
                 b = 0
@@ -129,26 +137,25 @@ class Highlight():
             if b >= e:
                 raise Exception("背景音乐剪辑错误：开始时间（%s）不早于结束时间（%s）" % (b, e))
             else:
-                audio_clip = audio_clip.subclip(b, e)
+                audio_clip = audio_clip.subclipped(b, e)
         if repeat > 1:
             for i in range(repeat - 1):
                 audio_clip = concatenate_audioclips([audio_clip, audio_clip])
         video_duration = video_clip.duration
         audio_duration = audio_clip.duration
         if mode == "cut":               # 视频结束停止音乐
-            audio_clip = audio_clip.subclip(0, video_duration)
-            self.__contents = video_clip.set_audio(audio_clip)
+            audio_clip = audio_clip.subclipped(0, video_duration)
+            self.__contents = video_clip.with_audio(audio_clip)
         elif mode == "change_music_speed":    # 调整音乐速度，匹配视频时长
             speed = audio_duration / video_duration
-            audio_clip = audio_clip.fl_time(lambda t:speed*t)
-            audio_clip = audio_clip.set_duration(audio_duration / speed)
-            self.__contents = video_clip.set_audio(audio_clip)
+            audio_clip = audio_clip.with_effects([vfx.MultiplySpeed(final_duration=video_duration)])
             print("为匹配视频长度，背景音乐速度已调整为原先的 %.2f 倍" % speed)
+            self.__contents = video_clip.with_audio(audio_clip)
         else:
             raise Exception("添加背景音乐失败，请指定模式（\"cut\" 或 \"change_music_speed\"）")
         return self
 
-    def use(self, filename: str, folder: str = None) -> Highlight:
+    def use(self, filename: str, folder: str = None) -> "Highlight":
         """
         指定集锦的下一段视频片段使用的视频源文件。
         返回值是 self，即调用该函数的实例本身，因此可用于链式写法。
@@ -160,7 +167,7 @@ class Highlight():
         self.__source_file = File(filename, folder)
         return self
 
-    def show_score(self, show: bool = True) -> Highlight:
+    def show_score(self, show: bool = True) -> "Highlight":
         """
         设置是否显示比分牌。
         返回值是 self，即调用该函数的实例本身，因此可用于链式写法。
@@ -168,7 +175,7 @@ class Highlight():
         self.__show_score = show
         return self
 
-    def set_score(self, home: int, away: int) -> Highlight:
+    def set_score(self, home: int, away: int) -> "Highlight":
         """
         更新比分。
         返回值是 self，即调用该函数的实例本身，因此可用于链式写法。
@@ -180,7 +187,7 @@ class Highlight():
         self.__score = (home, away)
         return self
 
-    def take(self, *args: list) -> Highlight:
+    def take(self, *args: list) -> "Highlight":
         """
         从正在使用的视频中提取片段，并指定后期处理选项，然后添加至集锦的末尾。
         如果新追加视频画面尺寸不同，会自动将新视频转化成和已有集锦相同的尺寸。
@@ -222,6 +229,9 @@ class Highlight():
                     fadein：淡入效果持续的秒数。
                     fadeout：淡出效果持续的秒数。
         """
+
+        from .tools import add_effects, add_caption, add_scoreboard
+
         # 不传入任何参数的情况
         if len(args) == 0:
             args = [["", ""]]
@@ -240,6 +250,7 @@ class Highlight():
                 begin = "0"
             if end == "":
                 end = str(self.source_file().contents().duration)
+            # 截取视频片段
             clip = self.source_file().select(begin, end)
             if len(info) == 4:    # 添加特效和字幕，顺序是先加特效，再加字幕和比分牌
                 effects = info[3]
@@ -259,7 +270,7 @@ class Highlight():
             self.__add_video(clip)
         return self
 
-    def export(self, filename: str, folder: str = None, mode: str = "hd", threads: int | None = None) -> Highlight:
+    def export(self, filename: str, folder: str = None, mode: str = "hd", threads: int | None = None) -> "Highlight":
         """
         将整个集锦导出成视频文件。
         返回值是 self，即调用该函数的实例本身，因此可用于链式写法。
@@ -271,12 +282,15 @@ class Highlight():
                 mode = "preview"：用于导出快速预览，视频文件会很小，建议导出文件名选择 .mp4 后缀。
                 mode = "hd"：高清画质，视频压缩效果好，建议导出文件名选择 .mp4 后缀。
                 mode = "DJI Action 4"：匹配大疆 Action 4 画质，建议导出文件名选择 .mp4 后缀。
-                mode = "lossless"，无损画质，文件非常大，不推荐使用。建议导出文件名选择 .avi 
-            threads：导出时的线程数，默认为 None 即不使用多线程。
+                mode = "lossless"，无损画质，文件非常大，不推荐使用。建议导出文件名选择 .avi 后缀。
+            threads：导出时的线程数，默认为 None 即不使用多线程。不推荐使用，因为似乎没有什么用处。
         """
+        from os.path import join
+        from .options import GetPath
+
         if folder == None:
             folder = GetPath()
-        output_path = path.join(folder, filename)
+        output_path = join(folder, filename)
         # 快速导出
         if mode == "preview":
             self.__contents.write_videofile(
@@ -287,7 +301,7 @@ class Highlight():
                 threads = threads,
             )
         # 高清画质
-        ## 视频质量通过 bitrate 参数调节，B站推荐4k视频码率大于20000kbps
+        ## 视频质量通过 bitrate 参数调节，B 站推荐 4K 视频码率大于 20000kbps
         elif mode == "hd":
             self.__contents.write_videofile(
                 output_path,
@@ -299,7 +313,7 @@ class Highlight():
         elif mode == "DJI Action 4":
             self.__contents.write_videofile(
                 output_path,
-                fps = 60,
+                fps = 59.94,
                 codec="libx264",
                 bitrate="100000k",
                 threads = threads,
@@ -315,10 +329,12 @@ class Highlight():
         print("视频已导出至 %s" % output_path)
         return self
     
-    def change_match_info(self, home: str = "", away: str = "") -> Highlight:
+    def change_match_info(self, home: str = "", away: str = "") -> "Highlight":
         """
         中途修改比赛信息（主客队信息），用于制作多场比赛的集锦。
         """
+        from .options import SetMatchInfo
+
         if home != "" and away != "":
             SetMatchInfo(home=home, away=away)
         elif home != "":

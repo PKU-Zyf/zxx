@@ -11,12 +11,12 @@ zxx.options
 PATH = "D:\\"
 
 MATCH_INFO = {
-    "home": "政信信",
-    "away": "",
+    "home": "政信社",
+    "away": "友队",
 }
 
 CAPTION_STYLE = {
-    "font": "楷体",
+    "font": "C:\\Windows\\Fonts\\simkai.ttf",
     "fontsize": 100,    # 一行大约19个汉字
     "color": "white",
     "position": "bottom",
@@ -27,6 +27,7 @@ SCOREBOARD_STYLE = {
     "image": "scoreboard.png",
     "font_file": "华文新魏.ttf",
     "color": "black",
+    "width_factor": 0.25,
 }
 
 
@@ -60,35 +61,30 @@ def SetCaptionStyle(**kwargs) -> None:
     修改字幕设置。可以传入任意的参数，无效的参数会被忽略。
 
     可以传入的参数及其默认值：
-        font="楷体",
+        font="C:\\Windows\\Fonts\\simkai.ttf",
         fontsize=100,
         color="white",
         position="bottom",
         relative=False,
 
     参数说明：
-        font、fontsize 和 color 参数都是传入 moviepy.video.VideoClip 的 TextClip 类的初始化参数 font。
-        font：直接键入字体名即可，但必须是在 zxx.options.AllFonts() 返回的字体列表中的字体名。
+        font：需指定字体文件路径，必须是 OpenType 字体格式。
+            可采用绝对路径，例如："C:\\Windows\\Fonts\\simkai.ttf"；
+            也可采用相对路径，例如 "simkai.ttf"，此时将在工作路径下寻找该字体文件。
         fontsize：字号，可调试后调整数字大小。
-        color：字体颜色。须符合 ImageMagick 的颜色写法，使用色彩名、十六进制、RGB、RGBA 等均可，
+        color：字体颜色。须符合 Pillow 库的命名规范，使用色彩名、十六进制、RGB、RGBA 均可，
             可采用以下写法中的任意一种：
                 color="lime"
                 color="#00ff00"
-                color="rgb(0, 255, 0)"
-                color="rgba(0, 255, 0, 1.0)"
-            详见：https://imagemagick.org/script/color.php
-        position 和 relative：传入 TextClip.set_position() 函数，可以使用多种写法。
-            set_position() 函数示例翻译如下：
-                clip.set_position((45,150))    # 像素坐标 x=45, y=150
-                clip.set_position(("center","top"))    # 水平居中，竖直对齐
-                clip.set_position((0.4,0.7), relative=True)    # 相对位置，水平 40%，竖直 70%
-                clip.set_position(lambda t: ('center', 50+t) )    # 水平居中，竖直向上移动
-            对应地，使用本函数时，直接写成：
-                position=(45,150)
-                position="bottom"
-                position=("center","top")
-                position=(0.4,0.7), relative=True
-                position=lambda t: ('center', 50+t)
+                color="(0, 255, 0)"
+                color="(0, 255, 0, 1.0)"
+        position 和 relative：设置字幕位置，可以使用多种写法。
+            这两个参数直接传入 moviepy 的 TextClip.with_position() 方法，使用 SetCaptionStyle() 时直接写成：
+                position=(45,150)    # 像素坐标 x=45, y=150
+                position="bottom"    # 竖直底对齐
+                position=("center","top")    # 水平居中，竖直上对齐
+                position=(0.4,0.7), relative=True    # 相对位置，水平 40%，竖直 70%
+                position=lambda t: ('center', 50+t)    # 水平居中，竖直向上移动
     """
     global CAPTION_STYLE
     CAPTION_STYLE.update(kwargs)
@@ -102,6 +98,7 @@ def SetScoreBoardStyle(**kwargs) -> None:
         image="scoreboard.png",
         font_file="华文新魏.ttf",
         color="black",
+        width_factor=0.25,
 
     参数说明：
         image：比分牌图片的文件名，工作路径（即 zxx.options.GetPath() 返回值）的相对路径。最好是细长的横版图片。
@@ -112,6 +109,7 @@ def SetScoreBoardStyle(**kwargs) -> None:
                 color="#800080"
                 color=(255, 10, 10)
                 color=(255, 10, 10, 100)
+        width_factor：比分牌宽度占视频宽度的比例。
     """
     global SCOREBOARD_STYLE
     SCOREBOARD_STYLE.update(kwargs)
@@ -162,17 +160,11 @@ def GetScoreBoardStyle(para: str = None) -> dict | str:
         return SCOREBOARD_STYLE[para]
 
 
-def AllFonts(print_list: bool = True) -> list:
+def AllFonts(print_list: bool = True) -> None:
     """
-    返回所有可用的字体列表。
-
-    参数说明：
-        print_list：是否打印字体列表，默认打印。
+    （已弃用）返回所有可用的字体列表。
+    由于 moviepy 2.x 不再依赖 ImageMagick，改为直接指定字体路径，因此不再需要这一功能。
     """
-    from moviepy.editor import TextClip
 
-    font_list = TextClip.list("font")
-    if print_list:
-        print(font_list)
-    
-    return font_list
+    print("AllFonts() 方法已被弃用，因为 zxx 1.2.0 及以后版本依赖的 moviepy 2.x 可直接指定字幕字体路径。")
+    return None
