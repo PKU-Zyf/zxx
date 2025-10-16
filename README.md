@@ -1,6 +1,6 @@
 # zxx
 
-* 北京大学政信社（政信信）女足开发的 Python 库，主要用于剪辑比赛集锦。 / A Python package developed by “Zheng-Xin-She” (formerly “Zheng-Xin-Xin”) Women’s Football Team at Peking University, mainly used for editing game highlights.
+* 为北京大学信心社（原政信社、政信信）女足开发的 Python 库，主要用于剪辑比赛集锦。 / A Python package developed for “Xin-Xin-She” (formerly “Zheng-Xin-She” and “Zheng-Xin-Xin”) Women’s Football Team at Peking University, mainly used for editing game highlights.
 * 点击[此处](https://github.com/PKU-Zyf/zxx)前往 `zxx` 的 GitHub 主页。您可以在 `zxx_example_code` 文件夹查看示例代码。 / Click [here](https://github.com/PKU-Zyf/zxx) to go to the GitHub homepage of  `zxx`. You can check example code in the  `zxx_example_code` folder.
 * 点击[此处](https://pypi.org/project/zxx)前往 `zxx` 的 PyPI 主页。 / Click [here](https://pypi.org/project/zxx) to go to the PyPI homepage of `zxx`.
 * 安装 / To install: `pip install zxx`.
