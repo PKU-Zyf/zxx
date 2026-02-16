@@ -21,13 +21,20 @@ CAPTION_STYLE = {
     "color": "white",
     "position": "bottom",
     "relative": False,
+    "background": None,
+    "margin": 0,
+    "vertical_adj":0,
 }
 
 SCOREBOARD_STYLE = {
-    "image": "scoreboard.png",
+    "image": None,
+    "board_color": "#ffccccff",
     "font_file": "华文新魏.ttf",
     "color": "black",
     "width_factor": 0.25,
+    "position": ("left", "top"),
+    "relative": False,
+    "fontsize_factor": 0.8,
 }
 
 
@@ -46,7 +53,7 @@ def SetMatchInfo(**kwargs) -> None:
     设置比赛信息。可以传入任意的参数，无效的参数会被忽略。
 
     可以识别的参数及其默认值：
-        home="政信信",
+        home="政信社",
         away="",
 
     参数说明：
@@ -66,6 +73,9 @@ def SetCaptionStyle(**kwargs) -> None:
         color="white",
         position="bottom",
         relative=False,
+        background=None,
+        margin=0,
+        vertical_adj=0,
 
     参数说明：
         font：需指定字体文件路径，必须是 OpenType 字体格式。
@@ -79,12 +89,17 @@ def SetCaptionStyle(**kwargs) -> None:
                 color="(0, 255, 0)"
                 color="(0, 255, 0, 1.0)"
         position 和 relative：设置字幕位置，可以使用多种写法。
-            这两个参数直接传入 moviepy 的 TextClip.with_position() 方法，使用 SetCaptionStyle() 时直接写成：
+            这两个参数直接传入 moviepy 的 with_position() 方法，使用 SetCaptionStyle() 时直接写成：
                 position=(45,150)    # 像素坐标 x=45, y=150
                 position="bottom"    # 竖直底对齐
                 position=("center","top")    # 水平居中，竖直上对齐
                 position=(0.4,0.7), relative=True    # 相对位置，水平 40%，竖直 70%
                 position=lambda t: ('center', 50+t)    # 水平居中，竖直向上移动
+        background：字幕的背景颜色，为一圆角矩形。可以是字符串，也可以是元组。建议使用 RGBA 格式指定透明度，
+                如 "#ffffff80" 或 (255, 255, 255, 128)。默认为 None，即无背景颜色。
+        margin：字幕与背景框边缘的距离，单位是像素，仅当 background 不为 None 时有效。
+        vertical_adj：字幕相对于字幕框的垂直偏移量，单位是像素。正值向上，负值向下，默认为 0。这是因为有些字体在
+            垂直居中对齐时可能在视觉上并不居中，因此可以手动微调。
     """
     global CAPTION_STYLE
     CAPTION_STYLE.update(kwargs)
@@ -95,13 +110,18 @@ def SetScoreBoardStyle(**kwargs) -> None:
     修改比分牌设置。可以传入任意的参数，无效的参数会被忽略。
 
     可以传入的参数及其默认值：
-        image="scoreboard.png",
+        image=None,
+        board_color="#ffccccff",
         font_file="华文新魏.ttf",
         color="black",
         width_factor=0.25,
+        position=("left", "top"),
+        relative=False,
+        fontsize_factor=0.8,
 
     参数说明：
-        image：比分牌图片的文件名，工作路径（即 zxx.options.GetPath() 返回值）的相对路径。最好是细长的横版图片。
+        image：比分牌图片的文件名，工作路径的相对路径，例如"scoreboard.png"。最好是细长的横版图片。会覆盖默认比分牌设置。
+        board_color：使用默认比分牌，并指定比分牌的颜色。默认颜色为粉色 "#ffccccff"。
         font_file：字体文件名，需要把字体文件复制到工作路径。
         color：字体颜色。须符合 Pillow 库的颜色写法，使用色彩名、十六进制、RGB、RGBA 等均可，
             可采用以下写法中的任意一种：
@@ -110,6 +130,14 @@ def SetScoreBoardStyle(**kwargs) -> None:
                 color=(255, 10, 10)
                 color=(255, 10, 10, 100)
         width_factor：比分牌宽度占视频宽度的比例。
+        position 和 relative：设置比分牌位置，可以使用多种写法。
+            这两个参数直接传入 moviepy 的 with_position() 方法，使用 SetScoreBoardStyle() 时直接写成：
+                position=(45,150)    # 像素坐标 x=45, y=150
+                position="bottom"    # 竖直底对齐
+                position=("center","top")    # 水平居中，竖直上对齐
+                position=(0.4,0.7), relative=True    # 相对位置，水平 40%，竖直 70%
+                position=lambda t: ('center', 50+t)    # 水平居中，竖直向上移动
+        fontsize_factor：字体大小最多占据图片高度或宽度，范围在 0-1 之间。默认值为 0.8
     """
     global SCOREBOARD_STYLE
     SCOREBOARD_STYLE.update(kwargs)

@@ -21,6 +21,7 @@ class Highlight():
         self.__source_file = None
         self.__score = (0, 0)
         self.__show_score = False
+        self.__show_caption = True
 
     def contents(self) -> VideoClip | None:
         """
@@ -174,6 +175,15 @@ class Highlight():
         """
         self.__show_score = show
         return self
+    
+    def show_caption(self, show: bool = True) -> "Highlight":
+        """
+        设置是否显示字幕。
+        如果设为 False，将会忽略所有设置的字幕。
+        返回值是 self，即调用该函数的实例本身，因此可用于链式写法。
+        """
+        self.__show_caption = show
+        return self
 
     def set_score(self, home: int, away: int) -> "Highlight":
         """
@@ -216,27 +226,43 @@ class Highlight():
             4. 特效元素（dict 类型）会传递到 zxx.tools.effects() 方法作为参数。
                 每种特效的键名、值类型和默认值分别为：
                     speed: float = 1, 
+                    duration: float | None = None, 
                     silence: bool = False, 
                     lum: float = 0, 
                     contrast: float = 0, 
                     fadein: float = 0, 
-                    fadeout: float = 0,
+                    fadeout: float = 0, 
+                    crop: tuple[float, float, float, float] | None = None
+                    crop_abs: tuple[int, int, int, int] | None = None, 
+                    crop_keep_ratio: tuple[float, float, float] | None = None, 
+                    crop_keep_ratio_abs: tuple[int, int, int] | None = None,
                 具体意义：
-                    speed：调整视频的速度倍数，不建议放慢太多，可能导致时间轴错误。
+                    speed：调整视频的速度倍数。不可以和 duration 参数一起指定。默认为 1。不建议放慢太多，可能导致时间轴错误。
+                    duration：调整视频的速度后，视频片段的持续时间（秒数）。不可以和 speed 参数一起指定。默认为 None。
                     silence：是否消音。
                     lum：亮度要增加或减少的值，大小没有限制，不过一般在 -127 至 127 之间，可自行调试。
                     contrast：对比度要调整的值，大小没有限制，不过一般在 -1 至 1之间，可自行调试。
                     fadein：淡入效果持续的秒数。
                     fadeout：淡出效果持续的秒数。
+                    crop 系列参数用于裁剪视频，但注意可能导致比例失真（crop 和 crop_relative）。这四个参数只能同时指定一个。
+                        crop：裁切视频指定长方形区域，指定裁切区域左上角和右下角的相对位置。
+                            顺序是 (x1, y1, x2, y2)，例如 (2/3, 1/3, 1, 2/3)，表示裁切区域是视频九宫格的右侧居中那格。
+                        crop_abs：裁切视频指定长方形区域，依次指定裁切区域左上角和右下角坐标，顺序也是 (x1, y1, x2, y2)，
+                            以左上角为 (0, 0)。
+                        crop_keep_ratio：裁切视频指定长方形区域，指定裁切区域左上角坐标和右下角横坐标的相对位置。
+                            顺序是 (x1, y1, x2)，y2 将根据视频比例自动计算得到。例如 (2/3, 1/3, 1)，
+                            表示裁切区域是视频九宫格的右侧居中那格。
+                        crop_keep_ratio_abs：裁切视频指定长方形区域，依次指定裁切区域左上角坐标和右下角横坐标，
+                            顺序也是 (x1, y1, x2)，y2 将根据视频比例自动计算得到。
         """
-
-        from .tools import add_effects, add_caption, add_scoreboard
+        from .tools import add_effects, add_caption, add_scoreboard, add_caption_and_scoreboard
 
         # 不传入任何参数的情况
         if len(args) == 0:
             args = [["", ""]]
         # 分析参数
         for info in args:
+            has_scoreboard = False
             if len(info) >= 5:
                 raise Exception("*args 中某一项包含元素过多，必须是 1 至 4 个！")
             if len(info) == 1:    # 处理只传入 1 个元素的情况
@@ -244,27 +270,45 @@ class Highlight():
             elif len(info) == 2:    # 处理传入 2 个元素为字幕和特效的情况
                 if isinstance(info[1], dict):
                     info = ["", "", info[0], info[1]]
+            # 现在 info 中至少有 3 个参数了，且前 2 个参数分别是起始时刻和结束时刻
+            # 设定起始时刻和结束时刻，然后截取视频片段
             begin = info[0]
             end = info[1]
             if begin == "":
                 begin = "0"
             if end == "":
                 end = str(self.source_file().contents().duration)
-            # 截取视频片段
             clip = self.source_file().select(begin, end)
-            if len(info) == 4:    # 添加特效和字幕，顺序是先加特效，再加字幕和比分牌
+            # 4 个参数的情况：添加特效和字幕，顺序是先加特效，再加字幕
+            if len(info) == 4:
                 effects = info[3]
                 clip = add_effects(clip, **effects)
-                caption = info[2]
-                clip = add_caption(clip, caption)
-            elif len(info) == 3:    # 只添加特效或字幕
+                if self.__show_caption:
+                    caption = info[2]
+                    # 判断是否同时加比分牌
+                    if self.__show_score:
+                        home_score, away_score = self.score()
+                        clip = add_caption_and_scoreboard(clip, caption, home_score, away_score)
+                        has_scoreboard = True
+                    else:
+                        clip = add_caption(clip, caption)
+            # 3 个参数的情况：只添加特效或字幕，需要判断一下是哪个
+            elif len(info) == 3:
                 if isinstance(info[2], dict):
                     effects = info[2]
                     clip = add_effects(clip, **effects)
                 else:
-                    caption = info[2]
-                    clip = add_caption(clip, caption)
-            if self.__show_score:
+                    if self.__show_caption:
+                        caption = info[2]
+                        # 判断是否同时加比分牌
+                        if self.__show_score:
+                            home_score, away_score = self.score()
+                            clip = add_caption_and_scoreboard(clip, caption, home_score, away_score)
+                            has_scoreboard = True
+                        else:
+                            clip = add_caption(clip, caption)
+            # 补充添加比分牌
+            if self.__show_score and not has_scoreboard:
                 home_score, away_score = self.score()
                 clip = add_scoreboard(clip, home_score, away_score)
             self.__add_video(clip)
@@ -342,3 +386,39 @@ class Highlight():
         elif away != "":
             SetMatchInfo(away=away)
         return self
+    
+    def preview_frame(self, filename: str, t: float | tuple | str = 0, folder: str | None = None) -> "Highlight":
+        """
+        保存指定时刻的帧，可以用于预览视频效果。
+        默认导出首帧。默认保存在工作目录。
+        参数 t 指定时刻：
+            可以是秒数：t = 15.35
+            可以是元组形式的 (min, sec) 或 (hour, min, sec)：t = (1, 3, 5.35)
+            可以是字符串: t = "01:03:05.35"
+            特别地，指定 t = "last" 时，保存最后一帧。指定 t = "second_last" 时，保存倒数第二帧。
+        """
+        from os.path import join
+        from .options import GetPath
+
+        if folder == None:
+            folder = GetPath()
+        output_path = join(folder, filename)
+        if t == "last":
+            # 获取最后一帧
+            t = self.__contents.duration
+        if t == "second_last":
+            # 获取倒数第二帧
+            fps = self.__contents.fps
+            t = self.__contents.duration - 1 / fps
+        self.__contents.save_frame(filename=output_path, t=t)
+        print(f"第 {t} 秒的帧已保存至 {output_path}")
+        return self
+
+    # def clear(self):
+    #     """
+    #     释放所有正在使用 clips，建议在导出视频之后调用，以关闭多余的子进程。
+    #     """
+    #     from moviepy.tools import close_all_clips
+    #     close_all_clips()
+    #     return self
+
